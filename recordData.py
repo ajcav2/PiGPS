@@ -25,6 +25,11 @@ record = False
 x = []
 y = []
 z = []
+gyro_x = []
+gyro_y = []
+gyro_z = []
+rot_x = []
+rot_y = []
 def beginRecording():
     global record
     while not record:
@@ -65,11 +70,27 @@ def beginRecording():
         x.append(accel_xout_scaled)
         y.append(accel_yout_scaled)
         z.append(accel_zout_scaled)
+
+        gyro_x.append(gyro_xout/131)
+        gyro_y.append(gyro_yout/131)
+        gyro_z.append(gyro_zout/131)
+
+        rot_x.append(get_x_rotation(accel_xout_scaled, accel_yout_scaled, accel_zout_scaled))
+        rot_y.append(get_y_rotation(accel_xout_scaled, accel_yout_scaled, accel_zout_scaled))
+
+        
+        
+        
     GPIO.output(led,False)
     print("Writing...")
-    write(x,"x")
-    write(y,"y")
-    write(z,"z")
+    write(x,"x_accel_MPU")
+    write(y,"y_accel_MPU")
+    write(z,"z_accel_MPU")
+    write(gyro_x,"gyro_x")
+    write(gyro_y,"gyro_y")
+    write(gyro_z,"gyro_z")
+    write(rot_x,"rot_x")
+    write(rot_y,"rot_y")
     print("Done.")
 
 def write(lst,fname):
