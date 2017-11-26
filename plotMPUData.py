@@ -11,7 +11,11 @@ gyro_x = open("/home/pi/Documents/ae456final/data/gyro_x").read().splitlines()
 gyro_y = open("/home/pi/Documents/ae456final/data/gyro_y").read().splitlines()
 gyro_z = open("/home/pi/Documents/ae456final/data/gyro_z").read().splitlines()
 
-
+def write(lst,fname):
+    with open("/home/pi/Documents/ae456final/data/"+fname,"w") as f:
+        for val in lst:
+            f.write("%s\n" % val)
+        f.close()
 
 # Correction Lerp
 def correctGyro(x_corr,y_corr,z_corr):
@@ -84,9 +88,6 @@ for i in range(0,len(accel_z)):
 
     # Rotate coordinated before applying acceleration integration
     Rx,Ry,Rz = getRotatedCoordinates(x_angle_total, y_angle_total, z_angle_total)
-##    Rx = np.array([[1,0,0],[0,1,0],[0,0,1]])
-##    Ry = np.array([[1,0,0],[0,1,0],[0,0,1]])
-##    Rz = np.array([[1,0,0],[0,1,0],[0,0,1]])
     
     inertialAcceleration = np.array([float(accel_x[i])-0.09, float(accel_y[i]), float(accel_z[i])+0.948]).T
     acceleration[:,i] = Rx.dot(Ry.dot(Rz.dot(inertialAcceleration)))
@@ -131,6 +132,10 @@ for i in range(0,len(accel_z)):
 
     d_x_total = d_x_total +  v_x_total*dt
     d_x.append(d_x_total)
+
+# Write calculated data for later use
+write(v_z,"v_z")
+write(acceleration[2,:],"z_accel_rotated")
 
 
 # Plot gyro data
