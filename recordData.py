@@ -94,7 +94,7 @@ def beginRecording():
     print("Done.")
 
 def write(lst,fname):
-    with open("/home/pi/Documents/ae456final/data/"+fname,"w") as f:
+    with open("/home/pi/Documents/ae456final/data/raw/"+fname,"w") as f:
         for val in lst:
             f.write("%s\n" % val)
         f.close()
