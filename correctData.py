@@ -10,6 +10,13 @@ rot_x = open(path+"rot_x").read().splitlines()
 gyro_x = open(path+"gyro_x").read().splitlines()
 gyro_y = open(path+"gyro_y").read().splitlines()
 gyro_z = open(path+"gyro_z").read().splitlines()
+GPS_alt = open(path+"GPS_alt").read().splitlines()
+
+# Correct GPS data by subtracting known altitude of Shampoo-Banana
+GPS_alt_corrected = []
+for i in range(0,len(GPS_alt)):
+    GPS_alt_corrected.append(float(GPS_alt[i])-200.0)
+
 
 # Correction Lerp
 def correctGyro(x_corr,y_corr,z_corr):
@@ -113,6 +120,7 @@ for i in range(0,len(accel_z)):
     d_x_total = d_x_total +  v_x_total*dt
     d_x.append(d_x_total)
 
+write(GPS_alt_corrected,"GPS_alt_corrected")
 write(v_z,"v_z")
 write(acceleration[2,:],"z_accel_rotated")
 write(v_y,"v_y")

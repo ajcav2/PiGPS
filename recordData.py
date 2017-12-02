@@ -4,6 +4,16 @@ import RPi.GPIO as GPIO
 import smbus
 import math
 import time
+import serial # and milk
+import subprocess
+import os
+import signal
+import threading
+import thread
+import io 
+
+# To read GPS data from USB
+ser = serial.Serial('/dev/ttyACM0', 9600)
 
 # Power management registers
 power_mgmt_1 = 0x6b
@@ -30,13 +40,34 @@ gyro_y = []
 gyro_z = []
 rot_x = []
 rot_y = []
+GPS_alt = []
+
+def serialRecorder():
+    global record
+    while record:
+        line = ser.readline()
+        if len(line) > 1 and "PUBX" in line:
+            line = line.split('W')[1]
+            line = line[1:]
+            line = line.split(',')[0]
+            GPS_alt.append(line)
+    
 def beginRecording():
     global record
+    global GPS
     while not record:
         time.sleep(1.5)
         print("Recording: "+str(record))
     GPIO.output(led,True)
+
+    # Start serial read on a new thread so that the MPU doesn't have
+    # to wait for the serial read
+    record_thread = threading.Thread(target=serialRecorder, args=[])
+    record_thread.daemon = True
+    record_thread.start()
+    
     while record:
+
         print "gyro data"
         print "---------"
 
@@ -79,8 +110,6 @@ def beginRecording():
         rot_y.append(get_y_rotation(accel_xout_scaled, accel_yout_scaled, accel_zout_scaled))
 
         
-        
-        
     GPIO.output(led,False)
     print("Writing...")
     write(x,"x_accel_MPU")
@@ -91,6 +120,7 @@ def beginRecording():
     write(gyro_z,"gyro_z")
     write(rot_x,"rot_x")
     write(rot_y,"rot_y")
+    write(GPS_alt,"GPS_alt")
     print("Done.")
 
 def write(lst,fname):

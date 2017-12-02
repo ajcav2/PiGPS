@@ -23,6 +23,8 @@ d_z = open(path+"dz").read().splitlines()
 x_angle = open(path+"x_angle").read().splitlines()
 y_angle = open(path+"y_angle").read().splitlines()
 z_angle = open(path+"z_angle").read().splitlines()
+p = open(path+"filtered_position").read().splitlines()
+v = open(path+"filtered_velocity").read().splitlines()
 
 # Sampling frequency of MPU6050
 dt = 1.0/163.0
@@ -75,6 +77,22 @@ plt.plot(times,v_x,'r.',label='x')
 plt.plot(times,v_y,'g.',label='y')
 plt.plot(times,v_z,'b.',label='z')
 plt.title('Integrated velocity')
+plt.legend()
+plt.ylabel('Velocity [m/s]')
+plt.xlabel('Time [s]')
+
+# Plot position with Kalman Filter
+plt.figure()
+plt.plot(times[0:len(p)],p,'r.',label='Altitude')
+plt.title('Kalman-Filtered Altitude')
+plt.legend()
+plt.ylabel('Altitude [m]')
+plt.xlabel('Time [s]')
+
+# Plot velocity with Kalman Filter
+plt.figure()
+plt.plot(times[0:len(v)],v,'r.',label='Velocity (z)')
+plt.title('Kalman-Filtered Velocity')
 plt.legend()
 plt.ylabel('Velocity [m/s]')
 plt.xlabel('Time [s]')

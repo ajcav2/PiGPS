@@ -37,18 +37,21 @@ def interpolation(lst1,lst2,time):
     t1 = np.arange(0,time,dt1)
     t2 = np.arange(0,time,dt2)
 
+    # Ensure vectors are same length
+    short = min(len(t2),len(d2))
+    t2 = t2[:short]
+    d2 = d2[:short]
+
     # Create interpolation function
     f = interpolate.interp1d(t2,d2)
 
     # Use interpolation function to generate new values
-    xnew = np.arange(0,10-dt2,dt1)
+    xnew = np.arange(0,time-dt2,dt1)
     d2 = f(xnew)
 
     # Trim longer vector to match size
     d1 = d1[:len(d2)]
     t1 = t1[:len(xnew)]
-
-
 
     return d1,d2,t1
 
