@@ -27,101 +27,127 @@ bus.write_byte_data(address, power_mgmt_1, 0)
 
 # Setup GPIO pins
 led = 27
+gpsSignal = 22
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 GPIO.setup(led,GPIO.OUT)
+GPIO.setup(gpsSignal,GPIO.OUT)
+GPIO.output(gpsSignal,False)
+GPIO.output(led,False)
 
 record = False
-x = []
-y = []
-z = []
-gyro_x = []
-gyro_y = []
-gyro_z = []
-rot_x = []
-rot_y = []
 GPS_alt = []
+
 
 def serialRecorder():
     global record
+    global GPS_alt
+    GPS_alt = []
     while record:
         line = ser.readline()
         if len(line) > 1 and "PUBX" in line:
-            line = line.split('W')[1]
+            line = line.split('W')[1] # Need to change this if I go to Europe
             line = line[1:]
             line = line.split(',')[0]
+            try:
+                if line != GPS_alt[-1]:
+                    GPIO.output(gpsSignal,True)
+                else:
+                    GPIO.output(gpsSignal,False)
+            except: # List is too short (first loop)
+                pass
             GPS_alt.append(line)
     
 def beginRecording():
     global record
     global GPS
-    while not record:
-        time.sleep(1.5)
-        print("Recording: "+str(record))
-    GPIO.output(led,True)
-
-    # Start serial read on a new thread so that the MPU doesn't have
-    # to wait for the serial read
-    record_thread = threading.Thread(target=serialRecorder, args=[])
-    record_thread.daemon = True
-    record_thread.start()
+    global ready
+    global GPS_alt
     
-    while record:
+    while True:
+        x = []
+        y = []
+        z = []
+        gyro_x = []
+        gyro_y = []
+        gyro_z = []
+        rot_x = []
+        rot_y = []
+        
 
-        print "gyro data"
-        print "---------"
+        while not record:
+            time.sleep(1.5)
+            print("Recording: "+str(record))
+        GPIO.output(led,True)
 
-        gyro_xout = read_word_2c(0x43)
-        gyro_yout = read_word_2c(0x45)
-        gyro_zout = read_word_2c(0x47)
+        # Start serial read on a new thread so that the MPU doesn't have
+        # to wait for the serial read
+        record_thread = threading.Thread(target=serialRecorder, args=[])
+        record_thread.daemon = True
+        record_thread.start()
 
-        print "gyro_xout: ", gyro_xout, " scaled: ", (gyro_xout / 131)
-        print "gyro_yout: ", gyro_yout, " scaled: ", (gyro_yout / 131)
-        print "gyro_zout: ", gyro_zout, " scaled: ", (gyro_zout / 131)
+        caughtError = False
+        while record:
+            try:
 
-        print
-        print "accelerometer data"
-        print "------------------"
+                print "gyro data"
+                print "---------"
 
-        accel_xout = read_word_2c(0x3b)
-        accel_yout = read_word_2c(0x3d)
-        accel_zout = read_word_2c(0x3f)
+                gyro_xout = read_word_2c(0x43)
+                gyro_yout = read_word_2c(0x45)
+                gyro_zout = read_word_2c(0x47)
 
-        accel_xout_scaled = accel_xout / 16384.0
-        accel_yout_scaled = accel_yout / 16384.0
-        accel_zout_scaled = accel_zout / 16384.0
+                print "gyro_xout: ", gyro_xout, " scaled: ", (gyro_xout / 131)
+                print "gyro_yout: ", gyro_yout, " scaled: ", (gyro_yout / 131)
+                print "gyro_zout: ", gyro_zout, " scaled: ", (gyro_zout / 131)
 
-        print "accel_xout: ", accel_xout, " scaled: ", accel_xout_scaled
-        print "accel_yout: ", accel_yout, " scaled: ", accel_yout_scaled
-        print "accel_zout: ", accel_zout, " scaled: ", accel_zout_scaled
+                print
+                print "accelerometer data"
+                print "------------------"
 
-        print "x rotation: " , get_x_rotation(accel_xout_scaled, accel_yout_scaled, accel_zout_scaled)
-        print "y rotation: " , get_y_rotation(accel_xout_scaled, accel_yout_scaled, accel_zout_scaled)
+                accel_xout = read_word_2c(0x3b)
+                accel_yout = read_word_2c(0x3d)
+                accel_zout = read_word_2c(0x3f)
 
-        x.append(accel_xout_scaled)
-        y.append(accel_yout_scaled)
-        z.append(accel_zout_scaled)
+                accel_xout_scaled = accel_xout / 16384.0
+                accel_yout_scaled = accel_yout / 16384.0
+                accel_zout_scaled = accel_zout / 16384.0
 
-        gyro_x.append(gyro_xout/131)
-        gyro_y.append(gyro_yout/131)
-        gyro_z.append(gyro_zout/131)
+                print "accel_xout: ", accel_xout, " scaled: ", accel_xout_scaled
+                print "accel_yout: ", accel_yout, " scaled: ", accel_yout_scaled
+                print "accel_zout: ", accel_zout, " scaled: ", accel_zout_scaled
 
-        rot_x.append(get_x_rotation(accel_xout_scaled, accel_yout_scaled, accel_zout_scaled))
-        rot_y.append(get_y_rotation(accel_xout_scaled, accel_yout_scaled, accel_zout_scaled))
+                print "x rotation: " , get_x_rotation(accel_xout_scaled, accel_yout_scaled, accel_zout_scaled)
+                print "y rotation: " , get_y_rotation(accel_xout_scaled, accel_yout_scaled, accel_zout_scaled)
+
+                x.append(accel_xout_scaled)
+                y.append(accel_yout_scaled)
+                z.append(accel_zout_scaled)
+
+                gyro_x.append(gyro_xout/131)
+                gyro_y.append(gyro_yout/131)
+                gyro_z.append(gyro_zout/131)
+
+                rot_x.append(get_x_rotation(accel_xout_scaled, accel_yout_scaled, accel_zout_scaled))
+                rot_y.append(get_y_rotation(accel_xout_scaled, accel_yout_scaled, accel_zout_scaled))
+                
+            except:
+                caughtError = True
 
         
-    GPIO.output(led,False)
-    print("Writing...")
-    write(x,"x_accel_MPU")
-    write(y,"y_accel_MPU")
-    write(z,"z_accel_MPU")
-    write(gyro_x,"gyro_x")
-    write(gyro_y,"gyro_y")
-    write(gyro_z,"gyro_z")
-    write(rot_x,"rot_x")
-    write(rot_y,"rot_y")
-    write(GPS_alt,"GPS_alt")
-    print("Done.")
+        GPIO.output(led,False)
+        GPIO.output(gpsSignal,False)
+        print("Writing...")
+        write(x,"x_accel_MPU")
+        write(y,"y_accel_MPU")
+        write(z,"z_accel_MPU")
+        write(gyro_x,"gyro_x")
+        write(gyro_y,"gyro_y")
+        write(gyro_z,"gyro_z")
+        write(rot_x,"rot_x")
+        write(rot_y,"rot_y")
+        write(GPS_alt,"GPS_alt")
+        print("Done.")
 
 def write(lst,fname):
     with open("/home/pi/Documents/ae456final/data/raw/"+fname,"w") as f:

@@ -25,6 +25,7 @@ y_angle = open(path+"y_angle").read().splitlines()
 z_angle = open(path+"z_angle").read().splitlines()
 p = open(path+"filtered_position").read().splitlines()
 v = open(path+"filtered_velocity").read().splitlines()
+GPS_alt = open(path+"GPS_interpolated").read().splitlines()
 
 # Sampling frequency of MPU6050
 dt = 1.0/163.0
@@ -32,79 +33,86 @@ dt = 1.0/163.0
 # Number of data points
 times = np.arange(0,dt*len(accel_z),dt)
 
-# Plot gyro data
-plt.figure()
-plt.plot(times,gyro_x,'r.',label='x')
-plt.plot(times,gyro_y,'g.',label='y')
-plt.plot(times,gyro_z,'b.',label='z')
-plt.title('Gyro data')
-plt.legend()
-plt.ylabel('Rate [deg/sec]')
-plt.xlabel('Time [s]')
-
-# Plot rotation data
-plt.figure()
-plt.plot(times,rot_x,'r.',label='x rotation')
-plt.plot(times,rot_y,'g.',label='y rotation')
-plt.title('Rotation data')
-plt.legend()
-plt.ylabel('Angle [deg]')
-plt.xlabel('Time [s]')
-
+### Plot gyro data
+##plt.figure()
+##plt.plot(times,gyro_x,'r.',label='x')
+##plt.plot(times,gyro_y,'g.',label='y')
+##plt.plot(times,gyro_z,'b.',label='z')
+##plt.title('Gyro data')
+##plt.legend()
+##plt.ylabel('Rate [deg/sec]')
+##plt.xlabel('Time [s]')
+##
+### Plot rotation data
+##plt.figure()
+##plt.plot(times,rot_x,'r.',label='x rotation')
+##plt.plot(times,rot_y,'g.',label='y rotation')
+##plt.title('Rotation data')
+##plt.legend()
+##plt.ylabel('Angle [deg]')
+##plt.xlabel('Time [s]')
+##
 # Plot acceleration data
 plt.figure()
-plt.plot(times,accel_x_rot,'r.',label='x')
-plt.plot(times,accel_y_rot,'g.',label='y')
-plt.plot(times,accel_z_rot,'b.',label='z')
+plt.plot(times[0:len(accel_x_rot)],accel_x_rot,'r.',label='x')
+plt.plot(times[0:len(accel_y_rot)],accel_y_rot,'g.',label='y')
+plt.plot(times[0:len(accel_z_rot)],accel_z_rot,'b.',label='z')
 plt.title('Acceleration data')
 plt.legend()
 plt.ylabel('Acceleration [m/s^2]')
 plt.xlabel('Time [s]')
-
-# Plot integrated gyro data
-plt.figure()
-plt.plot(times,x_angle,'r.',label='x')
-plt.plot(times,y_angle,'g.',label='y')
-plt.plot(times,z_angle,'b.',label='z')
-plt.title('Integrated gyro')
-plt.legend()
-plt.ylabel('Angle [deg]')
-plt.xlabel('Time [s]')
-
+##
+### Plot integrated gyro data
+##plt.figure()
+##plt.plot(times,x_angle,'r.',label='x')
+##plt.plot(times,y_angle,'g.',label='y')
+##plt.plot(times,z_angle,'b.',label='z')
+##plt.title('Integrated gyro')
+##plt.legend()
+##plt.ylabel('Angle [deg]')
+##plt.xlabel('Time [s]')
+##
 # Plot integrated velocity
 plt.figure()
-plt.plot(times,v_x,'r.',label='x')
-plt.plot(times,v_y,'g.',label='y')
-plt.plot(times,v_z,'b.',label='z')
+plt.plot(times[0:len(v_x)],v_x,'r.',label='x')
+plt.plot(times[0:len(v_y)],v_y,'g.',label='y')
+plt.plot(times[0:len(v_z)],v_z,'b.',label='z')
 plt.title('Integrated velocity')
 plt.legend()
 plt.ylabel('Velocity [m/s]')
 plt.xlabel('Time [s]')
 
 # Plot position with Kalman Filter
+GPS_alt = np.asarray(GPS_alt)
+GPS_alt = GPS_alt.astype(np.float)
 plt.figure()
-plt.plot(times[0:len(p)],p,'r.',label='Altitude')
-plt.title('Kalman-Filtered Altitude')
-plt.legend()
+plt.plot(times[0:len(p)],p,'r.',label='Kalman')
+plt.plot(times[0:len(d_z)],d_z,'g.',label='MPU')
+plt.plot(times[0:len(GPS_alt)],GPS_alt,'b.',label='GPS')
+plt.title('Altitude')
+plt.legend(bbox_to_anchor=(0.35,0.35),
+           bbox_transform=plt.gcf().transFigure)
 plt.ylabel('Altitude [m]')
 plt.xlabel('Time [s]')
+plt.grid(color='k',linestyle='-', linewidth=2)
 
 # Plot velocity with Kalman Filter
 plt.figure()
-plt.plot(times[0:len(v)],v,'r.',label='Velocity (z)')
-plt.title('Kalman-Filtered Velocity')
+plt.plot(times[0:len(v)],v,'r.',label='Kalman')
+plt.plot(times[0:len(v_z)],v_z,'g.',label="MPU")
+plt.title('Velocity')
 plt.legend()
 plt.ylabel('Velocity [m/s]')
 plt.xlabel('Time [s]')
 
+
 # Plot position
 plt.figure()
-plt.plot(times,d_x,'r.',label='x pos')
-plt.plot(times,d_y,'g.',label='y pos')
-plt.plot(times,d_z,'b.',label='z pos')
+plt.plot(times[0:len(d_x)],d_x,'r.',label='x pos')
+plt.plot(times[0:len(d_y)],d_y,'g.',label='y pos')
+plt.plot(times[0:len(d_z)],d_z,'b.',label='z pos')
 plt.title('Integrated position')
 plt.legend()
 plt.ylabel('Position [m]')
 plt.xlabel('Time [s]')
 plt.show()
-    

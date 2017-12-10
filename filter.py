@@ -1,5 +1,6 @@
 import numpy as np
 import interpolation
+# Learn about Kalman filters here: https://drive.google.com/file/d/0By_SW19c1BfhSVFzNHc0SjduNzg/view
 
 def write(lst,fname):
     with open("/home/pi/Documents/ae456final/data/"+fname,"w") as f:
@@ -16,21 +17,25 @@ if __name__ == "__main__":
     dt = 1.0/163.0
 
     # Initialize variables
+    P_cov = 1     # IMU
+    R_cov = 887.1 # GPS
+    Q_cov = 0.000001 # State noise
+
     x0_hat = np.array([[0],[0]])
-    P_cov = 4.1221820555318724e-05
-    R_cov = 38.376807878000115
     P0 = np.array([[P_cov, 0],[0,P_cov]])
     F1 = np.array([[1, dt],[0, 1]])
     B1 = np.array([[dt**2/2],[dt]])
     H1 = np.array([[1,0],[0,0]])
     R1 = np.array([[R_cov, 0],[0,R_cov]])
-    Q1 = np.array([[0, 0],[0,0]]) # need 2 calculate this
+    Q1 = np.array([[Q_cov, 0],[0,Q_cov]]) # need 2 calculate this
     
     # To record position and velocity
     p=[]
     v=[]
     
     a_z,z1,length = interpolation.interpolation(a_z,GPS_alt_corrected,len(a_z)*dt)
+    for i in range(len(a_z)):
+        a_z[i] = float(a_z[i])*(-1.0)
     
     for i in range(0,len(a_z)):
         # Prediction
