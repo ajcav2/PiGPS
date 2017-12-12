@@ -17,17 +17,22 @@ if __name__ == "__main__":
     dt = 1.0/163.0
 
     # Initialize variables
-    P_cov = 1     # IMU
-    R_cov = 887.1 # GPS
-    Q_cov = 0.000001 # State noise
+## THESE VALUES DO SOMETHING GOOD
+##    P_cov = 1000000000     # IMU
+##    R_cov = 16 # GPS
+##    Q_cov = 0.000000000001 # State noise
 
-    x0_hat = np.array([[0],[0]])
+    P_cov = 1.0 # IMU
+    R_cov = 16.0 # GPS
+    Q_cov = 0.00001 # State noise
+
+    x0_hat = np.array([[float(GPS_alt_corrected[0])],[0.0]])
     P0 = np.array([[P_cov, 0],[0,P_cov]])
-    F1 = np.array([[1, dt],[0, 1]])
+    F1 = np.array([[1.0, dt],[0.0, 1.0]])
     B1 = np.array([[dt**2/2],[dt]])
-    H1 = np.array([[1,0],[0,0]])
-    R1 = np.array([[R_cov, 0],[0,R_cov]])
-    Q1 = np.array([[Q_cov, 0],[0,Q_cov]]) # need 2 calculate this
+    H1 = np.array([[1.0,0.0],[0.0,0.0]])
+    R1 = np.array([[R_cov, 0.0],[0.0,R_cov]])
+    Q1 = np.array([[Q_cov, 0.0],[0.0,Q_cov]]) # need 2 calculate this
     
     # To record position and velocity
     p=[]
