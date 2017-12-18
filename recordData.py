@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 import RPi.GPIO as GPIO
 import smbus
 import math
@@ -26,14 +25,15 @@ address = 0x68       # This is the address value read via the i2cdetect command
 bus.write_byte_data(address, power_mgmt_1, 0)
 
 # Setup GPIO pins
-led = 27
-gpsSignal = 22
+led = 16 # should be 27, decoy pin
+gpsSignal = 27 # should be 22
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 GPIO.setup(led,GPIO.OUT)
 GPIO.setup(gpsSignal,GPIO.OUT)
 GPIO.output(gpsSignal,False)
 GPIO.output(led,False)
+
 
 record = False
 GPS_alt = []
@@ -61,7 +61,6 @@ def serialRecorder():
 def beginRecording():
     global record
     global GPS
-    global ready
     global GPS_alt
     
     while True:
@@ -123,7 +122,7 @@ def beginRecording():
                 x.append(accel_xout_scaled)
                 y.append(accel_yout_scaled)
                 z.append(accel_zout_scaled)
-
+                
                 gyro_x.append(gyro_xout/131)
                 gyro_y.append(gyro_yout/131)
                 gyro_z.append(gyro_zout/131)
@@ -148,6 +147,7 @@ def beginRecording():
         write(rot_y,"rot_y")
         write(GPS_alt,"GPS_alt")
         print("Done.")
+        
 
 def write(lst,fname):
     with open("/home/pi/Documents/ae456final/data/raw/"+fname,"w") as f:

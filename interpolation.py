@@ -53,6 +53,12 @@ def interpolation(lst1,lst2,time):
     d1 = d1[:len(d2)]
     t1 = t1[:len(xnew)]
 
+    # Write the new vector to a file so we can use it for plotting
+    with open("/home/pi/Documents/ae456final/data/GPS_interpolated","w") as f:
+        for val in d2:
+            f.write("%s\n" % val)
+        f.close()
+
     return d1,d2,t1
 
     

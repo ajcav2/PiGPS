@@ -1,4 +1,6 @@
 import numpy as np
+###
+# This script corrects for measured offsets in the IMU
 
 # Read in data from files
 path = "/home/pi/Documents/ae456final/data/raw/"
@@ -15,10 +17,10 @@ GPS_alt = open(path+"GPS_alt").read().splitlines()
 # Correct GPS data by subtracting known altitude of Shampoo-Banana
 GPS_alt_corrected = []
 for i in range(0,len(GPS_alt)):
-    GPS_alt_corrected.append(float(GPS_alt[i])-200.0)
+    GPS_alt_corrected.append(float(GPS_alt[i])-205.4)
 
 
-# Correction Lerp
+# Correction Loop
 def correctGyro(x_corr,y_corr,z_corr):
     global gyro_x
     global gyro_y
@@ -37,20 +39,26 @@ def write(lst,fname):
             f.write("%s\n" % val)
         f.close()
 
+# High pass filter
+def highPass(val,tol):
+    if abs(val) > tol:
+        return val
+    return 0.0
         
 
-# Generation rotated coordinates to calculate acceleration
+# Generate rotated coordinates to calculate acceleration
 def getRotatedCoordinates(theta_x,theta_y,theta_z):
-    theta_x = (np.pi/180.0)*theta_x
-    theta_y = (np.pi/180.0)*theta_y
-    theta_z = (np.pi/180.0)*theta_z
+    theta_x = (np.pi/180.0)*float(theta_x)
+    theta_y = (np.pi/180.0)*float(theta_y)
+    theta_z = (np.pi/180.0)*float(theta_z)
     
-    Rz = np.array([[np.cos(theta_z), np.sin(theta_z), 0],[-np.sin(theta_z), np.cos(theta_z), 0],[0,0,1]])
-    Ry = np.array([[np.cos(theta_y), 0, -np.sin(theta_y)],[0,1,0],[np.sin(theta_y), 0, np.cos(theta_y)]])
-    Rx = np.array([[1,0,0],[0, np.cos(theta_x), np.sin(theta_x)],[0, -np.sin(theta_x), np.cos(theta_x)]])
+    Rz = np.array([[np.cos(theta_z), -np.sin(theta_z), 0.0],[np.sin(theta_z), np.cos(theta_z), 0.0],[0.0,0.0,1.0]])
+    Ry = np.array([[np.cos(theta_y), 0.0, np.sin(theta_y)],[0.0,1.0,0.0],[-np.sin(theta_y), 0.0, np.cos(theta_y)]])
+    Rx = np.array([[1.0,0.0,0.0],[0.0, np.cos(theta_x), -np.sin(theta_x)],[0, np.sin(theta_x), np.cos(theta_x)]])
     return Rx,Ry,Rz
 
-correctGyro(3.5,1.5,2.0)
+# Fix gyro readings (constant offset)
+correctGyro(4.0,1.0,2.0)
 
 # Sampling frequency of MPU6050
 dt = 1.0/163.0
@@ -85,10 +93,10 @@ v_x = []
 acceleration = np.full((3,len(accel_z)),0)
 for i in range(0,len(accel_z)):
     # Calculate current angle by integrating gyro
-    x_angle_total = x_angle_total + dt*(float(gyro_x[i])+(8.0/60.0+13.0/56.0)+(1.4/51.9))
+    x_angle_total = x_angle_total + dt*(float(gyro_x[i])-(0.7/53.0))
     x_angle.append(x_angle_total)
 
-    y_angle_total = y_angle_total + dt*(float(gyro_y[i])+(1.0/6.0)-(1.2/51.2))
+    y_angle_total = y_angle_total + dt*(float(gyro_y[i])+(45.0/54.0))
     y_angle.append(y_angle_total)
 
     z_angle_total = z_angle_total + dt*(float(gyro_z[i]))
@@ -96,9 +104,19 @@ for i in range(0,len(accel_z)):
 
     # Rotate coordinated before applying acceleration integration
     Rx,Ry,Rz = getRotatedCoordinates(x_angle_total, y_angle_total, z_angle_total)
-    
-    inertialAcceleration = np.array([float(accel_x[i])-0.09, float(accel_y[i]), float(accel_z[i])+0.948]).T
-    acceleration[:,i] = Rx.dot(Ry.dot(Rz.dot(inertialAcceleration)))
+
+    inertialAcceleration = np.array([float(accel_x[i])-0.07, float(accel_y[i])+0.055, float(accel_z[i])-0.045]).T
+
+    # If we can count on the gyro to give accurate rotation data, use
+    # rotation matrix to rotate body frame to intertial frame.
+    #
+    ## acceleration[:,i] = Rz.dot(Ry.dot(Rx.dot(inertialAcceleration)))
+    #
+    # Otherwise, assume small angles so that the body frame = intertial
+    # frame.
+    acceleration[:,i] = inertialAcceleration
+    acceleration[2,i] += 1.0 # G's
+    acceleration[:,i] *= 9.81 # to m/s^2
 
     # Calculate velocity
     v_z_total = v_z_total - (acceleration[2,i])*dt

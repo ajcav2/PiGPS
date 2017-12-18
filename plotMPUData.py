@@ -33,25 +33,26 @@ dt = 1.0/163.0
 # Number of data points
 times = np.arange(0,dt*len(accel_z),dt)
 
-### Plot gyro data
-##plt.figure()
-##plt.plot(times,gyro_x,'r.',label='x')
-##plt.plot(times,gyro_y,'g.',label='y')
-##plt.plot(times,gyro_z,'b.',label='z')
-##plt.title('Gyro data')
-##plt.legend()
-##plt.ylabel('Rate [deg/sec]')
-##plt.xlabel('Time [s]')
-##
-### Plot rotation data
-##plt.figure()
-##plt.plot(times,rot_x,'r.',label='x rotation')
-##plt.plot(times,rot_y,'g.',label='y rotation')
-##plt.title('Rotation data')
-##plt.legend()
-##plt.ylabel('Angle [deg]')
-##plt.xlabel('Time [s]')
-##
+# Plot gyro data
+plt.figure()
+plt.plot(times[0:len(gyro_x)],gyro_x,'r.',label='x')
+plt.plot(times[0:len(gyro_y)],gyro_y,'g.',label='y')
+plt.plot(times[0:len(gyro_z)],gyro_z,'b.',label='z')
+plt.title('Gyro data')
+plt.legend()
+plt.ylabel('Rate [deg/sec]')
+plt.xlabel('Time [s]')
+
+
+# Plot rotation data
+plt.figure()
+plt.plot(times,rot_x,'r.',label='x rotation')
+plt.plot(times,rot_y,'g.',label='y rotation')
+plt.title('Rotation data')
+plt.legend()
+plt.ylabel('Angle [deg]')
+plt.xlabel('Time [s]')
+
 # Plot acceleration data
 plt.figure()
 plt.plot(times[0:len(accel_x_rot)],accel_x_rot,'r.',label='x')
@@ -61,17 +62,17 @@ plt.title('Acceleration data')
 plt.legend()
 plt.ylabel('Acceleration [m/s^2]')
 plt.xlabel('Time [s]')
-##
-### Plot integrated gyro data
-##plt.figure()
-##plt.plot(times,x_angle,'r.',label='x')
-##plt.plot(times,y_angle,'g.',label='y')
-##plt.plot(times,z_angle,'b.',label='z')
-##plt.title('Integrated gyro')
-##plt.legend()
-##plt.ylabel('Angle [deg]')
-##plt.xlabel('Time [s]')
-##
+
+# Plot integrated gyro data
+plt.figure()
+plt.plot(times[0:len(x_angle)],x_angle,'r.',label='x')
+plt.plot(times[0:len(y_angle)],y_angle,'g.',label='y')
+plt.plot(times[0:len(z_angle)],z_angle,'b.',label='z')
+plt.title('Integrated gyro')
+plt.legend()
+plt.ylabel('Angle [deg]')
+plt.xlabel('Time [s]')
+
 # Plot integrated velocity
 plt.figure()
 plt.plot(times[0:len(v_x)],v_x,'r.',label='x')
